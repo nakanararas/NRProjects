@@ -64,6 +64,13 @@ public:
         return 11;
     }
 
+    void playerHits() {
+        int newCard = dist(gen);
+        cout << "This is your new card: " << deck[newCard] << endl;
+        playerTotal += getValue(newCard);
+        cout << "Your total is: " << playerTotal << endl;
+    }
+
     void printPlayerCards() const {
         cout << "Your Cards: " << deck[cardOne] << " " << deck[cardTwo] << endl;
     }
@@ -76,125 +83,155 @@ public:
     void printCompCards() const {
         cout << "Dealer's cards: " << deck[compOne] << " " << deck[compTwo] << endl;
     }
+
+    bool askToPlayAgain() {
+
+        char answer = ' ';
+        while (true) {
+            cout << "Would you like to play again? (y) for yes. (n) or no" << endl;
+            cin >> answer;
+
+            if (answer == 'y')
+                return true;
+            else if (answer == 'n')
+                return false;
+            else {
+                cout << "Please select y or n" << endl;
+                continue;
+            }
+        }
+    }
 };
 
 int main() {
     BlackJack game;
     char result = ' ';
-    int decision = -1;
-    bool playersTurn = true;
+    bool keepPlaying = true;
 
-    game.reset();
-    cout << "Starting new game. RULE: Aces are always 11" << endl;
-    game.dealCards();
-    game.printInitCompCards();
+    while (keepPlaying) {
+        game.reset();
+        int decision = -1;
+        bool playersTurn = true;
 
-    //Tie at beginning of game
-    if (game.playerTotal == 21 && game.compTotal == 21) {
-        game.printCompCards();
-        cout << "Push! It's a tie!" << endl;
-        return 0;
-    }
+        cout << "------------------------------------------------" << endl;
+        cout << "Starting new game. RULE: Aces are always 11" << endl;
+        game.dealCards();
+        game.printInitCompCards();
 
-    //Player wins at beginning of game
-    if (game.playerTotal == 21) {
-        game.printPlayerCards();
-        cout << "You win!" << endl;
-        return 0;
-    }
-
-    //Dealer wins at beginning of game
-    if (game.compTotal == 21) {
-        game.printCompCards();
-        cout << "Sorry you lost!" << endl;
-        return 0;
-    }
-
-    game.printPlayerCards();
-
-    while (playersTurn) {
-        cout << "Your total: " << game.playerTotal << endl;
-        cout << "Do you want to hit (1) or stay (2) ?" << endl;
-        cout << "To quit, type 0" << endl;
-
-        //Invalid input
-        if (!(cin >> decision)) {
-            cin.clear();
-            string junk;
-            getline(cin, junk);
-            cout << "Please enter 1, 2, or 0" << endl;
+        //Tie at beginning of game
+        if (game.playerTotal == 21 && game.compTotal == 21) {
+            game.printCompCards();
+            cout << "Push! It's a tie!" << endl;
+            keepPlaying = game.askToPlayAgain();
             continue;
         }
 
-        //Invalid input
-        if (decision != 1 && decision != 2 && decision != 0) {
-            cout << "Invalid input. Please enter 1, 2, or 0" << endl;
-            continue;
-        }
-
-        //quit
-        if (decision == 0) {
-            cout << "Thanks for playing!" << endl;
-            return 0;
-        }
-
-        //if they hit
-        if (decision == 1) {
-            int newCard = game.dist(game.gen);
-
-            cout << "This is your new card: " << game.deck[newCard] << endl;
-            game.playerTotal += game.getValue(newCard);
-            cout << "Your total: " << game.playerTotal << endl;
-        }
-
-        //Check if player busts
-        if (game.playerTotal > 21) {
-            cout << "Sorry you lost!" << endl;
-            return 0;
-        }
-
-        //if player got 21 already, exit to let computer turn
+        //Player wins at beginning of game
         if (game.playerTotal == 21) {
-            playersTurn = false;
+            game.printPlayerCards();
+            cout << "You win!" << endl;
+            keepPlaying = game.askToPlayAgain();
+            continue;
         }
 
-        //if they stay
-        if (decision == 2) {
-            playersTurn = false;
+        //Dealer wins at beginning of game
+        if (game.compTotal == 21) {
+            game.printCompCards();
+            cout << "Sorry you lost!" << endl;
+            keepPlaying = game.askToPlayAgain();
+            continue;
         }
-    }
 
-    cout << "Computer's Turn now!" << endl;
-    cout << "Your final total: " << game.playerTotal << endl;
-    game.printCompCards();
-    cout << "Dealer's total: " << game.compTotal << endl;
+        game.printPlayerCards();
 
-    while (game.compTotal <= 16) {
-        //computer hits
-        int newCard = game.dist(game.gen);
-        cout << "This is the dealer's new card: " << game.deck[newCard] << endl;
-        game.compTotal += game.getValue(newCard);
+        while (playersTurn) {
+            cout << "Your total: " << game.playerTotal << endl;
+            cout << "Do you want to hit (1) or stay (2) ?" << endl;
+            cout << "To quit, type 0" << endl;
+
+            //Invalid input
+            if (!(cin >> decision)) {
+                cin.clear();
+                string junk;
+                getline(cin, junk);
+                cout << "Please enter 1, 2, or 0" << endl;
+                continue;
+            }
+
+            //Invalid input
+            if (decision != 1 && decision != 2 && decision != 0) {
+                cout << "Invalid input. Please enter 1, 2, or 0" << endl;
+                continue;
+            }
+
+            //quit
+            if (decision == 0) {
+                cout << "Thanks for playing!" << endl;
+                return 0;
+            }
+
+            //if they hit
+            if (decision == 1) {
+                game.playerHits();
+            }
+
+            //Check if player busts
+            if (game.playerTotal > 21) {
+                cout << "Sorry you lost!" << endl;
+                keepPlaying = game.askToPlayAgain();
+                goto end_of_round;
+            }
+
+            //if player got 21 already, exit to let computer turn
+            if (game.playerTotal == 21) {
+                playersTurn = false;
+            }
+
+            //if they stay
+            if (decision == 2) {
+                playersTurn = false;
+            }
+        }
+
+        cout << "Computer's Turn now!" << endl;
+        cout << "Your final total: " << game.playerTotal << endl;
+        game.printCompCards();
         cout << "Dealer's total: " << game.compTotal << endl;
 
-        //if Dealer busts
-        if (game.compTotal > 21) {
-            cout << "Dealer busts! You win!" << endl;
-            return 0;
-        }
-    }
+        while (game.compTotal <= 16) {
+            //computer hits
+            int newCard = game.dist(game.gen);
+            cout << "This is the dealer's new card: " << game.deck[newCard] << endl;
+            game.compTotal += game.getValue(newCard);
+            cout << "Dealer's total: " << game.compTotal << endl;
 
-    //Computer wins
-    if (game.compTotal > game.playerTotal) {
-        cout << "Sorry you lost!" << endl;
+            //if Dealer busts
+            if (game.compTotal > 21) {
+                cout << "Dealer busts! You win!" << endl;
+                keepPlaying = game.askToPlayAgain();
+                goto end_of_round;
+            }
+        }
+
+        //Computer wins
+        if (game.compTotal > game.playerTotal) {
+            cout << "Sorry you lost!" << endl;
+        }
+        //Player wins
+        else if (game.compTotal < game.playerTotal) {
+            cout << "You win!" << endl;
+        }
+        //Tie
+        else if (game.compTotal == game.playerTotal) {
+            cout << "Push! It's a tie!" << endl;
+        }
+
+        keepPlaying = game.askToPlayAgain();
+
+    end_of_round:
+        ;
     }
-    //Player wins
-    else if (game.compTotal < game.playerTotal) {
-        cout << "You win!" << endl;
-    }
-    //Tie
-    else if (game.compTotal == game.playerTotal) {
-        cout << "Push! It's a tie!" << endl;
-    }
+    cout << "Thanks for playing!" << endl;
 
     return 0;
 }
